@@ -32,6 +32,16 @@ public class ChimeraLogged implements LuxAgent
 
         states = new ArrayList<ArrayList>();
 
+    }
+
+
+
+    public void setPrefs(int ID, Board board )
+    {
+        this.board = board;
+        this.countries = board.getCountries();
+        this.ID = ID;
+
         possibleAgentTypes = new String[] {
                 "Boscoe",
                 "EvilPixie",
@@ -47,15 +57,6 @@ public class ChimeraLogged implements LuxAgent
                 "Bort",
                 "Sparrow"
          */
-    }
-
-
-
-    public void setPrefs(int ID, Board board )
-    {
-        this.board = board;
-        this.countries = board.getCountries();
-        this.ID = ID;
 
         // Try a maximum of 10 times to load an agent
         for (int i = 0; i < 10 && backer == null; i++)
@@ -63,18 +64,20 @@ public class ChimeraLogged implements LuxAgent
             try
             {
                 String tryAgent = possibleAgentTypes[ staticRand.nextInt(possibleAgentTypes.length) ];
-//			System.out.println("Try to load agent type "+tryAgent);
+			System.out.println("Try to load agent type "+tryAgent);
                 backer = board.getAgentInstance(tryAgent);
             }
             catch (Throwable e)
             {
+                System.out.println("Error:");
+                System.out.println(e);
 			//System.out.println("Chimera could not load a "+tryAgent+". Will try another type...");
             }
         }
-
-        if (backer == null)
+        if (backer == null) {
             backer = new Cluster();
-        System.out.println("Couldn't load! We are just loading cluster!!!!");
+            System.out.println("Couldn't load! We are just loading cluster!!!!");
+        }
 
         backer.setPrefs(ID, board);
     }
@@ -94,14 +97,17 @@ public class ChimeraLogged implements LuxAgent
     {
         if ("youLose".equals(message))
         {
+            logResults(0);
             board.sendEmote("reveals the shattered core of a "+backer.name(), this);
         }
-
         return backer.message(message, data);
     }
 
     public String youWon()
-    { return backer.youWon()+"\n("+backer.name()+")"; }
+    {
+        logResults(1);
+        return backer.youWon()+"\n("+backer.name()+")";
+    }
 
     // For all of the gameplay methods we just pass them to our backer:
     public int pickCountry()
@@ -118,9 +124,9 @@ public class ChimeraLogged implements LuxAgent
     }
     public void fortifyPhase()
     {
-        System.out.println("Fortify Phase");
+        //System.out.println("Fortify Phase");
         backer.fortifyPhase();
-        appendState(0);
+        appendState(0, 0);
     }
     public void cardsPhase( Card[] cards )
     {
@@ -128,15 +134,15 @@ public class ChimeraLogged implements LuxAgent
     }
     public void placeArmies( int numberOfArmies )
     {
-        System.out.println("Place Armies");
+        //System.out.println("Place Armies");
         backer.placeArmies(numberOfArmies);
-        appendState(1);
+        appendState(1, 1);
     }
     public void attackPhase()
     {
-        System.out.println("Attack Phase");
+        //System.out.println("Attack Phase");
         backer.attackPhase();
-        appendState(0);
+        appendState(0, 1);
     }
 
     // add in a variable draftingPhase. maybe also initial placement phase
@@ -146,9 +152,8 @@ public class ChimeraLogged implements LuxAgent
     {
 
         ArrayList<Integer> state = new ArrayList<Integer>();
-        // which turn is it or what is the multiplier (probably multiplier)
-        // units available to place
 
+        state.add(board.getTurnCount());
         state.add(board.getPlayerIncome(this.ID));
         for (int player = 0; player < board.getNumberOfPlayers(); player++)
         {
@@ -203,7 +208,7 @@ public class ChimeraLogged implements LuxAgent
 
         }
         //System.out.println("Appending a state");
-        System.out.println(state);
+        //System.out.println(state);
         states.add(state);
 
         /*try{
@@ -216,6 +221,24 @@ public class ChimeraLogged implements LuxAgent
             System.out.println("fail fail");
             ioe.printStackTrace();
         }*/
+    }
+
+    private void logResults(int result)
+    {
+
+        try {
+            PrintStream out = new PrintStream(new FileOutputStream("C:\\Program Files (x86)\\Lux\\Support\\data.txt", true));
+            for (int i = 0; i < this.states.size(); i++) {
+                this.states.get(i).add(0, result);
+                out.println(this.states.get(i));
+                out.flush();
+            }
+            out.close();
+        }
+        catch (FileNotFoundException e) {
+            System.out.println("Couldn't find file to write to:");
+            System.out.println("p" + this.ID + "data.txt");
+        }
     }
 
 
