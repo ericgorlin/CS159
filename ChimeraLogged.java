@@ -97,7 +97,8 @@ public class ChimeraLogged implements LuxAgent
     {
         if ("youLose".equals(message))
         {
-            logResults(0);
+            //logResults(0);
+            logOneState(0);
             board.sendEmote("reveals the shattered core of a "+backer.name(), this);
         }
         return backer.message(message, data);
@@ -105,7 +106,8 @@ public class ChimeraLogged implements LuxAgent
 
     public String youWon()
     {
-        logResults(1);
+        //logResults(1);
+        logOneState(1);
         return backer.youWon()+"\n("+backer.name()+")";
     }
 
@@ -137,6 +139,11 @@ public class ChimeraLogged implements LuxAgent
         //System.out.println("Place Armies");
         backer.placeArmies(numberOfArmies);
         appendState(1, 1);
+
+        if (board.getTurnCount() > 50)
+        {
+
+        }
     }
     public void attackPhase()
     {
@@ -179,10 +186,12 @@ public class ChimeraLogged implements LuxAgent
             } else {
                 state.add(0);
             }
-            state.add(sum);
-            state.add(count);
+            //state.add(sum);
+            //state.add(count);
 
         }
+        state.add(sum);
+        state.add(count);
         for (int player = 0; player < board.getNumberOfPlayers(); player++)
         {
             sum = 0;
@@ -201,33 +210,24 @@ public class ChimeraLogged implements LuxAgent
                 } else {
                     state.add(0);
                 }
-                state.add(sum);
-                state.add(count);
+                //state.add(sum);
+                //state.add(count);
 
             }
+            state.add(sum);
+            state.add(count);
 
         }
         //System.out.println("Appending a state");
         //System.out.println(state);
         states.add(state);
-
-        /*try{
-            FileOutputStream fos= new FileOutputStream("C:\\Users\\ericgorlin\\Documents\\CSProjects\\Risk\\data.txt");
-            ObjectOutputStream oos= new ObjectOutputStream(fos);
-            oos.writeObject(state);
-            oos.close();
-            fos.close();
-        } catch(IOException ioe){
-            System.out.println("fail fail");
-            ioe.printStackTrace();
-        }*/
     }
 
     private void logResults(int result)
     {
 
         try {
-            PrintStream out = new PrintStream(new FileOutputStream("C:\\Program Files (x86)\\Lux\\Support\\data.txt", true));
+            PrintStream out = new PrintStream(new FileOutputStream("C:\\Program Files (x86)\\Lux\\Support\\data2.txt", true));
             for (int i = 0; i < this.states.size(); i++) {
                 this.states.get(i).add(0, result);
                 out.println(this.states.get(i));
@@ -238,6 +238,18 @@ public class ChimeraLogged implements LuxAgent
         catch (FileNotFoundException e) {
             System.out.println("Couldn't find file to write to:");
             System.out.println("p" + this.ID + "data.txt");
+        }
+    }
+
+    private void logOneState(int result)
+    {
+        int ind = new Random().nextInt(states.size());
+        try {
+            PrintStream out = new PrintStream(new FileOutputStream("C:\\Program Files (x86)\\Lux\\Support\\data1per.txt", true));
+            this.states.get(ind).add(0, result);
+            out.println(this.states.get(ind));
+        }
+        catch (FileNotFoundException e) {
         }
     }
 
